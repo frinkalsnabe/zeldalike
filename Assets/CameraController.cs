@@ -3,60 +3,81 @@ using System.Collections;
 
 public class CameraController : MonoBehaviour {
 
-    public float moveSpeed = 1.0f;
-
+    public Transform player;
     public SpriteRenderer backgroundSprite;
 
-    private float backgroundWidth;
-    private float backgroundHeight;
-    private Vector3 backgroundCenter;
+    private const float cameraZ = -10;
+
+    private bool isProperlyInitialized = false;
+
+    private float bgRightBound;
+    private float bgLeftBound;
+    private float bgTopBound;
+    private float bgBottomBound;
+
+    private float camWidth;
+    private float camHeight;
 
 	// Use this for initialization
 	void Start () {
-        backgroundWidth = backgroundSprite.bounds.size.x;
-        backgroundHeight = backgroundSprite.bounds.size.y;
-        backgroundCenter = backgroundSprite.bounds.center;
+        isProperlyInitialized = InitializeBackgroundBounds() && InitializeCameraVariables();
 	}
 	
 	// Update is called once per frame
 	void Update () {
-        float hAxis;
-	    if( (hAxis = Input.GetAxis("Horizontal")) != 0.0f )
+	    // Every frame, try to snap the camera onto the player. If out of bounds, step back a bit until not out of bounds
+        if(player != null && isProperlyInitialized)
         {
-            if (hAxis > 0)
-            {
-                if (transform.position.x - backgroundCenter.x < backgroundWidth * 0.5f)
-                {
-                    transform.position += Vector3.right * hAxis * moveSpeed * Time.deltaTime;
-                }
-            }
-            else // hAxis < 0
-            {
-                if (transform.position.x - backgroundCenter.x > -1.0f * backgroundWidth * 0.5f)
-                {
-                    transform.position += Vector3.right * hAxis * moveSpeed * Time.deltaTime;
-                }
-            }
-        }
+            transform.position = new Vector3(player.position.x, player.position.y, cameraZ);
 
-        float vAxis;
-        if ((vAxis = Input.GetAxis("Vertical")) != 0.0f)
-        {
-            if (vAxis > 0)
+            // Snap back if we need to
+            // Snap right bound
+            if (transform.position.x + camWidth * 0.5f > bgRightBound)
             {
-                print(transform.position.y - backgroundCenter.y + " " + backgroundHeight * 0.5f);
-                if (transform.position.y - backgroundCenter.y < backgroundHeight * 0.5f)
-                {
-                    transform.position += Vector3.up * vAxis * moveSpeed * Time.deltaTime;
-                }
+                transform.position = new Vector3(bgRightBound - camWidth * 0.5f, transform.position.y, transform.position.z);
             }
-            else // vAxis < 0
+            // Snap left bound
+            if (transform.position.x - camWidth * 0.5f < bgLeftBound)
             {
-                if (transform.position.y - backgroundCenter.y > -1.0f * backgroundHeight * 0.5f)
-                {
-                    transform.position += Vector3.up * vAxis * moveSpeed * Time.deltaTime;
-                }
+                transform.position = new Vector3(bgLeftBound + camWidth * 0.5f, transform.position.y, transform.position.z);
+            }
+            // Snap top bound
+            if (transform.position.y + camHeight * 0.5f > bgTopBound)
+            {
+                transform.position = new Vector3(transform.position.x, bgTopBound - camHeight * 0.5f, transform.position.z);
+            }
+            // Snap bottom bound
+            if (transform.position.y - camHeight * 0.5f < bgBottomBound)
+            {
+                transform.position = new Vector3(transform.position.x, bgBottomBound + camHeight * 0.5f, transform.position.z);
             }
         }
+	}
+
+    bool InitializeBackgroundBounds()
+    {
+        if(backgroundSprite != null)
+        {
+            bgRightBound = (backgroundSprite.bounds.size.x - backgroundSprite.bounds.center.x) * 0.5f;
+            bgLeftBound = (backgroundSprite.bounds.center.x - backgroundSprite.bounds.size.x) * 0.5f;
+            bgTopBound = (backgroundSprite.bounds.size.y - backgroundSprite.bounds.center.y) * 0.5f;
+            bgBottomBound = (backgroundSprite.bounds.center.y - backgroundSprite.bounds.size.y) * 0.5f;
+
+            return true;
+        }
+        return false;
+    }
+
+    bool InitializeCameraVariables()
+    {
+        Camera cam;
+        if( (cam = GetComponent<Camera>()) != null)
+        {
+            camHeight = cam.orthographicSize * 2.0f;
+            camWidth = camHeight * Screen.width / Screen.height;
+
+            return true;
+        }
+        return false;
     }
 }
