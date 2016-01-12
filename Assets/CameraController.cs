@@ -25,7 +25,7 @@ public class CameraController : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-	    // Every frame, try to snap the camera onto the player. If out of bounds, step back a bit until not out of bounds
+	    // Every frame, try to snap the camera onto the player. If out of bounds, reset to a position that is not out of bounds
         if(player != null && isProperlyInitialized)
         {
             transform.position = new Vector3(player.position.x, player.position.y, cameraZ);
@@ -58,10 +58,10 @@ public class CameraController : MonoBehaviour {
     {
         if(backgroundSprite != null)
         {
-            bgRightBound = (backgroundSprite.bounds.size.x - backgroundSprite.bounds.center.x) * 0.5f;
-            bgLeftBound = (backgroundSprite.bounds.center.x - backgroundSprite.bounds.size.x) * 0.5f;
-            bgTopBound = (backgroundSprite.bounds.size.y - backgroundSprite.bounds.center.y) * 0.5f;
-            bgBottomBound = (backgroundSprite.bounds.center.y - backgroundSprite.bounds.size.y) * 0.5f;
+            bgRightBound = backgroundSprite.bounds.size.x * 0.5f- backgroundSprite.bounds.center.x;
+            bgLeftBound = backgroundSprite.bounds.center.x * 0.5f - backgroundSprite.bounds.size.x;
+            bgTopBound = backgroundSprite.bounds.size.y * 0.5f - backgroundSprite.bounds.center.y;
+            bgBottomBound = backgroundSprite.bounds.center.y *0.5f - backgroundSprite.bounds.size.y;
 
             return true;
         }
@@ -73,7 +73,7 @@ public class CameraController : MonoBehaviour {
         Camera cam;
         if( (cam = GetComponent<Camera>()) != null)
         {
-            camHeight = cam.orthographicSize * 2.0f;
+            camHeight = cam.orthographicSize * 2.0f;    // cam.orthrographicSize is half the height of the camera's vertical boundary plane
             camWidth = camHeight * Screen.width / Screen.height;
 
             return true;
